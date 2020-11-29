@@ -57,7 +57,6 @@ tb_int_t xm_os_argv(lua_State* lua)
         tb_int_t            skip = 0;
         tb_int_t            escape = 0;
         tb_char_t           quote = 0;
-        tb_bool_t           inquote_escape = tb_false;
         tb_char_t           ch = 0;
         tb_char_t const*    p = args;
         while ((ch = *p))
@@ -66,25 +65,28 @@ tb_int_t xm_os_argv(lua_State* lua)
             if (!escape)
             {
                 // enter quote?
-                if (!quote && (ch == '\"' || ch == '\'')) { quote = ch; skip = 1; }
+                if (!quote && (ch == '\"' || ch == '\'')) { quote = ch; }
                 // leave quote?
-                else if (ch == quote) { quote = 0; skip = 1; }
+                else if (ch == quote) { quote = 0; }
                 // escape charactor? only escape \\, \"
                 else if (ch == '\\' && (p[1] == '\\' || p[1] == '\"'))
                 {
                     escape = 1;
                     skip = 1;
-                    if (p[1] == '\"') inquote_escape = !inquote_escape;
                 }
                 // is argument end with ' '?
-                else if (!quote && !inquote_escape && tb_isspace(ch))
+                else if (!quote && tb_isspace(ch))
                 {
                     // save this argument
                     tb_string_ltrim(&arg);
-                    if (tb_string_size(&arg))
+                    tb_size_t n = tb_string_size(&arg);
+                    tb_char_t const* s = tb_string_cstr(&arg);
+                    if (s && n)
                     {
-                        // save argument
-                        lua_pushstring(lua, tb_string_cstr(&arg));
+                        // strip "", ''
+                        if (n > 2 && (s[0] == '\"' || s[0] == '\'') && s[0] == s[n - 1])
+                            lua_pushlstring(lua, s + 1, n - 2);
+                        else lua_pushlstring(lua, s, n);
                         lua_rawseti(lua, -2, i++);
                     }
 
@@ -109,10 +111,14 @@ tb_int_t xm_os_argv(lua_State* lua)
 
         // save this argument
         tb_string_ltrim(&arg);
-        if (tb_string_size(&arg))
+        tb_size_t n = tb_string_size(&arg);
+        tb_char_t const* s = tb_string_cstr(&arg);
+        if (s && n)
         {
-            // save argument
-            lua_pushstring(lua, tb_string_cstr(&arg));
+            // strip "", ''
+            if (n > 2 && (s[0] == '\"' || s[0] == '\'') && s[0] == s[n - 1])
+                lua_pushlstring(lua, s + 1, n - 2);
+            else lua_pushlstring(lua, s, n);
             lua_rawseti(lua, -2, i++);
         }
 

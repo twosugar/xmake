@@ -190,7 +190,7 @@ end
 
 -- make the define flag
 function nf_define(self, macro)
-    return "-D" .. os.args(macro)
+    return "-D" .. macro
 end
 
 -- make the undefine flag
