@@ -43,16 +43,20 @@ static tb_void_t tb_os_args_append(tb_string_ref_t result, tb_char_t const* cstr
     tb_size_t n = 0;
     tb_char_t const* p = cstr;
     tb_bool_t wrap_quote = tb_false;
+    tb_bool_t inquote = tb_false;
     tb_char_t buff[TB_PATH_MAXN];
     tb_size_t m = tb_arrayn(buff);
     while ((ch = *p) && n < m)
     {
+        // in quote?
+        if (ch == '\"') inquote = !inquote;
+
         // escape '"' or '\\'
         if (ch == '\"' || (escape && ch == '\\'))
         {
             if (n < m) buff[n++] = '\\';
         }
-        else if (ch == ' ' || ch == '(' || ch == ')') wrap_quote = tb_true;
+        else if (!inquote && (ch == ' ' || ch == '(' || ch == ')')) wrap_quote = tb_true;
         if (n < m) buff[n++] = ch;
         p++;
     }

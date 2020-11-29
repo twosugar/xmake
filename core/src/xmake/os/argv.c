@@ -57,6 +57,7 @@ tb_int_t xm_os_argv(lua_State* lua)
         tb_int_t            skip = 0;
         tb_int_t            escape = 0;
         tb_char_t           quote = 0;
+        tb_bool_t           inquote_escape = tb_false;
         tb_char_t           ch = 0;
         tb_char_t const*    p = args;
         while ((ch = *p))
@@ -69,9 +70,14 @@ tb_int_t xm_os_argv(lua_State* lua)
                 // leave quote?
                 else if (ch == quote) { quote = 0; skip = 1; }
                 // escape charactor? only escape \\, \"
-                else if (ch == '\\' && (p[1] == '\\' || p[1] == '\"')) { escape = 1; skip = 1; }
+                else if (ch == '\\' && (p[1] == '\\' || p[1] == '\"'))
+                {
+                    escape = 1;
+                    skip = 1;
+                    if (p[1] == '\"') inquote_escape = !inquote_escape;
+                }
                 // is argument end with ' '?
-                else if (!quote && tb_isspace(ch))
+                else if (!quote && !inquote_escape && tb_isspace(ch))
                 {
                     // save this argument
                     tb_string_ltrim(&arg);
