@@ -10,7 +10,7 @@ function test_build:build(argv)
 
     -- generic?
     os.exec("xmake f -c")
-    os.exec("xmake")
+    os.exec("xmake -vD")
     os.exec("xmake p -D")
     if not is_host("windows") then
         os.exec("xmake install -o $(tmpdir) -a -D")
